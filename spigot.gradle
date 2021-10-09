@@ -1,0 +1,138 @@
+import javax.net.ssl.HttpsURLConnection
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+
+
+class Constants {
+    static final def VERSION = "1.17.1"
+//    static final def SERVER_DOWNLOAD = "https://sparse.blue/downloads/spigot/spigot-${VERSION}.jar"
+    static final def SERVER_DOWNLOAD = "https://papermc.io/api/v2/projects/paper/versions/1.17.1/builds/311/downloads/paper-1.17.1-311.jar"
+    static final def GROUP_NAME = "server [${VERSION}]"
+    static final def RUN_FOLDER = new File("run-" + VERSION.toString())
+}
+
+task copyToPlugins(type: Copy) {
+    group Constants.GROUP_NAME
+    from testShadowJar
+    into new File(Constants.RUN_FOLDER, "plugins")
+}
+
+task setupTestServer {
+    group Constants.GROUP_NAME
+
+    doFirst {
+        def serverDir = Constants.RUN_FOLDER
+//        System.out.println(serverDir.getAbsolutePath())
+
+//        if (new File(serverDir, "server.jar").exists()) {
+//            System.out.println("It exists.")
+//            return
+//        }
+
+        serverDir.mkdir()
+
+        def settingsDir = new File(serverDir, "settings")
+        settingsDir.mkdir()
+
+
+        def eula = new File(settingsDir, "eula.txt")
+//        eula.write("eula=true")
+        def writer = new FileWriter(eula)
+        writer.write("eula=true")
+        writer.close()
+
+        new File(serverDir, "plugins").mkdir()
+        new File(serverDir, "worlds").mkdir()
+        createServerJar(serverDir)
+    }
+}
+
+
+task runTestServer(type: Exec, dependsOn: [copyToPlugins]) {
+    group Constants.GROUP_NAME
+    workingDir new File(Constants.RUN_FOLDER, "settings")
+//    commandLine 'java',
+//            '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005',
+//            '-Xmx4G',
+//            '-Xms4G',
+//            '-XX:+UseG1GC',
+//            '-XX:+UnlockExperimentalVMOptions',
+//            '-XX:MaxGCPauseMillis=100',
+//            '-XX:+DisableExplicitGC',
+//            '-XX:TargetSurvivorRatio=90',
+//            '-XX:G1NewSizePercent=40',
+//            '-XX:G1MaxNewSizePercent=60',
+//            '-XX:G1MixedGCLiveThresholdPercent=35',
+//            '-XX:+AlwaysPreTouch',
+//            '-XX:+ParallelRefProcEnabled',
+//            '-Dusing.aikars.flags=mcflags.emc.gs',
+//            '-jar', '../server.jar',
+//            '-P', '../plugins',
+//            '-W', '../worlds',
+//            '-nogui'
+    commandLine 'java',
+            '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005',
+            '-Xmx4G',
+            '-Xms4G',
+            '-XX:+UseG1GC',
+            '-XX:+ParallelRefProcEnabled',
+            '-XX:MaxGCPauseMillis=200',
+            '-XX:+UnlockExperimentalVMOptions',
+            '-XX:+DisableExplicitGC',
+            '-XX:+AlwaysPreTouch',
+            '-XX:G1NewSizePercent=30',
+            '-XX:G1MaxNewSizePercent=40',
+            '-XX:G1HeapRegionSize=8M',
+            '-XX:G1ReservePercent=20',
+            '-XX:G1HeapWastePercent=5',
+            '-XX:G1MixedGCCountTarget=4',
+            '-XX:InitiatingHeapOccupancyPercent=15',
+            '-XX:G1MixedGCLiveThresholdPercent=90',
+            '-XX:G1RSetUpdatingPauseTimePercent=5',
+            '-XX:SurvivorRatio=32',
+            '-XX:+UseCompressedOops',
+            '-XX:+PerfDisableSharedMem',
+            '-XX:MaxTenuringThreshold=1',
+            '-Dusing.aikars.flags=https://mcflags.emc.gs',
+            '-Daikars.new.flags=true',
+//            '-Djava.util.concurrent.ForkJoinPool.common.parallelism=2',
+//            '-Djava.util.concurrent.ForkJoinPool.common.maximumSpares=4',
+            '-jar', '../server.jar',
+            '-P', '../plugins',
+            '-W', '../worlds',
+            '-nogui'
+    standardInput = System.in
+}
+
+
+static void createServerJar(File serverDir) {
+    def url = new URL(Constants.SERVER_DOWNLOAD.toString())
+    def connection = url.openConnection() as HttpsURLConnection
+    connection.requestMethod = "GET"
+    connection.doInput = true
+    connection.setRequestProperty("User-Agent", "SpigotGradle/1.0")
+
+    def serverFile = new File(serverDir, 'server.jar')
+    Files.copy(connection.inputStream,
+            Paths.get(serverFile.absolutePath),
+            StandardCopyOption.REPLACE_EXISTING
+    )
+
+    connection.disconnect()
+}
+
+//javadoc {
+//    options {
+//        links 'https://papermc.io/javadocs/paper/1.16'
+//    }
+//}
+
+dependencies {
+//    compileOnly fileTree("run-${Constants.VERSION}/plugins")
+//            .exclude(shadowJar.archiveFileName.get())
+    implementation fileTree("run-${Constants.VERSION}/settings/cache/patched_1.17.1.jar")
+//    testCompile fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.16.4.jar")
+//    compileOnly fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.15.2.jar")
+//    runtimeOnly fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.15.2.jar")
+}

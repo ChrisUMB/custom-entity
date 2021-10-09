@@ -1,0 +1,7 @@
+name: "CustomEntityTest"
+version: 1.0
+main: me.chrisumb.customentitytest.CustomEntityTestPlugin
+commands:
+  customentity:
+    description: "Spawn a test entity."
+    usage: "/customentity"
