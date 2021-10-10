@@ -21,10 +21,14 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Consumer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @param <T> The type of {@link Entity} that will be the true, internal, server understood representation.
+ */
 public abstract class CustomEntityType<T extends Entity> {
 
     /**
@@ -44,10 +48,11 @@ public abstract class CustomEntityType<T extends Entity> {
     @NotNull
     private static final Map<String, CustomEntityType<?>> REGISTRY = new ConcurrentHashMap<>();
 
-//    private final String name;
-
     @NotNull
     private final String id;
+
+    @Nullable
+    private final Skin skin;
 
     @NotNull
     private final Class<T> internalEntityClass;
@@ -61,12 +66,23 @@ public abstract class CustomEntityType<T extends Entity> {
     @NotNull
     private final EntityType displayType;
 
+    /**
+     * Neither the internal nor display can be non-spawnable entities.<br>
+     * You can verify if the entity you are using us spawnable by checking {@link EntityType}'s "independent" variable, it should be true/unset.
+     *
+     * @param id                  The ID to be used in the registry.
+     * @param skin                The Skin to use for the display, only works if  the display entity is a {@link Player}.
+     * @param internalEntityClass The {@link Class<T> class} of the {@link Entity} type to be truly created on the server.
+     * @param displayEntityClass  The {@link Class<T> class} of the {@link Entity} type to be sent to the client.
+     */
     public CustomEntityType(
             @NotNull String id,
+            @Nullable Skin skin,
             @NotNull Class<T> internalEntityClass,
             @NotNull Class<? extends Entity> displayEntityClass
     ) {
         this.id = id;
+        this.skin = skin;
         this.internalEntityClass = internalEntityClass;
         this.displayEntityClass = displayEntityClass;
 
@@ -106,6 +122,23 @@ public abstract class CustomEntityType<T extends Entity> {
         this.displayType = displayType;
     }
 
+    /**
+     * Neither the internal nor display can be non-spawnable entities.<br>
+     * You can verify if the entity you are using us spawnable by checking {@link EntityType}'s "independent" variable, it should be true/unset.<br><br>
+     * Defaults the {@link Skin} to null.
+     *
+     * @param id                  The ID to be used in the registry.
+     * @param internalEntityClass The {@link Class<T> class} of the {@link Entity} type to be truly created on the server.
+     * @param displayEntityClass  The {@link Class<T> class} of the {@link Entity} type to be sent to the client.
+     */
+    public CustomEntityType(
+            @NotNull String id,
+            @NotNull Class<T> internalEntityClass,
+            @NotNull Class<? extends Entity> displayEntityClass
+    ) {
+        this(id, null, internalEntityClass, displayEntityClass);
+    }
+
     @NotNull
     public String getID() {
         return id;
@@ -131,12 +164,17 @@ public abstract class CustomEntityType<T extends Entity> {
         return displayEntityClass;
     }
 
+    @Nullable
+    public Skin getSkin() {
+        return skin;
+    }
+
     /**
      * This will be called whenever this {@link CustomEntityType} is right-clicked by a {@link Player}.<br>
      * <b>Note</b>: This will be called twice for each hand in the {@link PlayerInteractAtEntityEvent event}.<br><br>
      * For most cases, it's fine to check if {@link PlayerInteractAtEntityEvent event}.getHand() == {@link EquipmentSlot EquipmentSlot.HAND}.
      *
-     * @param entity The {@link T Entity} that was right-clicked.
+     * @param entity The {@link T entity} that was right-clicked.
      * @param player The {@link Player} that right-clicked the entity.
      * @param event  The {@link PlayerInteractAtEntityEvent event} instance.
      */
@@ -144,36 +182,58 @@ public abstract class CustomEntityType<T extends Entity> {
 
     }
 
+    /**
+     * This will be called whenever this {@link CustomEntityType} is damaged.
+     *
+     * @param entity The {@link T entity} that was damaged.
+     * @param event  The {@link EntityDamageEvent event} instance.
+     */
     public void onDamage(@NotNull T entity, @NotNull EntityDamageEvent event) {
 
     }
 
+    /**
+     * This will be called whenever this {@link CustomEntityType} deals damage to another {@link Entity}.
+     *
+     * @param entity  The {@link T entity} that dealt damage.
+     * @param damaged The {@link Entity entity} that was damaged.
+     * @param event   The {@link EntityDamageByEntityEvent event} instance.
+     */
     public void onDamageToEntity(@NotNull T entity, @NotNull Entity damaged, @NotNull EntityDamageByEntityEvent event) {
 
     }
 
+    /**
+     * This will be called whenever this {@link CustomEntityType} is damaged by another {@link Entity}.
+     *
+     * @param entity  The {@link T entity} that was damaged.
+     * @param damager the {@link Entity entity} that dealt damage.
+     * @param event   The {@link EntityDamageByEntityEvent event} instance.
+     */
     public void onDamageByEntity(@NotNull T entity, @NotNull Entity damager, @NotNull EntityDamageByEntityEvent event) {
 
     }
 
+    /**
+     * This will be called whenever this {@link CustomEntityType} gets damaged by a {@link Block}.
+     *
+     * @param entity The {@link T entity} that was damaged.
+     * @param block  The {@link Block} that damaged the entity.
+     * @param event  The {@link EntityDamageByBlockEvent event} instance.
+     */
     public void onDamageByBlock(@NotNull T entity, @NotNull Block block, @NotNull EntityDamageByBlockEvent event) {
 
     }
 
+    /**
+     * This will be called whenever this {@link CustomEntityType} dies.
+     *
+     * @param entity The {@link T entity} that died.
+     * @param event  The {@link EntityDeathEvent event} instance.
+     */
     public void onDeath(@NotNull T entity, @NotNull EntityDeathEvent event) {
 
     }
-
-//    /**
-//     * This event will only be fired if the entity's delta movement is more than {@link CustomEntityType#stepMoveDistance}.<br>
-//     * The intended use is for playing a step sound.
-//     *
-//     * @param entity The {@link T Entity} that stepped.
-//     * @param event  The {@link EntityMoveEvent event} instance.
-//     */
-//    public void onStep(@NotNull T entity, @NotNull EntityMoveEvent event) {
-//
-//    }
 
     /**
      * This will be called whenever this {@link CustomEntityType} is spawned.
@@ -184,6 +244,13 @@ public abstract class CustomEntityType<T extends Entity> {
 
     }
 
+    /**
+     * Spawns the {@link CustomEntityType} at the given {@link Location}, and allowing for pre-spawn {@link Consumer<T>} to be passed.
+     *
+     * @param location         The {@link Location} to spawn the {@link T entity} at.
+     * @param preSpawnFunction Passed to the world.spawn() function that gets executed before the {@link Entity} is in the world.
+     * @return The {@link T entity}.
+     */
     @NotNull
     public final T spawn(Location location, Consumer<T> preSpawnFunction) {
         World world = location.getWorld();
@@ -195,9 +262,46 @@ public abstract class CustomEntityType<T extends Entity> {
         return entity;
     }
 
+    /**
+     * Spawns the {@link CustomEntityType} at the given {@link Location}.
+     *
+     * @param location The{@link Location} to spawn the {@link T entity} at.
+     * @return The {@link T entity}.
+     */
     @NotNull
     public final T spawn(Location location) {
         return this.spawn(location, (entity) -> {
+        });
+    }
+
+    /**
+     * A dynamic spawn function for when you just want to spawn an entity that looks like another entity on the client.<br><br>
+     * <b>Note:</b> entities spawned with this function will NOT be persistent!<br>
+     * This is an experimental functionality, use at your own risk.
+     *
+     * @param internal The internal {@link EntityType} to use for this {@link Entity}.
+     * @param display  The display {@link EntityType} that clients will see.
+     * @param location The spawn {@link Location} for the entity.
+     * @return The {@link Entity} spawned entity, or null if either the display or internal don't have an entity class.
+     */
+    public static Entity spawn(EntityType internal, EntityType display, Location location) {
+        String dynamicID = internal.name() + "-" + display.name();
+
+        if (internal.getEntityClass() == null) {
+            return null;
+        }
+
+        if (display.getEntityClass() == null) {
+            return null;
+        }
+
+        CustomEntityType<?> type = new CustomEntityType(dynamicID, internal.getEntityClass(), display.getEntityClass()) {
+        };
+
+        register(type);
+
+        return location.getWorld().spawn(location, internal.getEntityClass(), (entity) -> {
+            set(entity, type);
         });
     }
 
@@ -210,7 +314,7 @@ public abstract class CustomEntityType<T extends Entity> {
         plugin = JavaPlugin.getProvidingPlugin(CustomEntityType.class);
         entityKey = new NamespacedKey(plugin, "custom_entity");
         PluginManager pluginManager = Bukkit.getPluginManager();
-        pluginManager.registerEvents(new PlayerPacketListener(), plugin);
+        pluginManager.registerEvents(new PlayerPacketListener(plugin), plugin);
         pluginManager.registerEvents(new CustomEntityListener(), plugin);
     }
 
@@ -221,6 +325,7 @@ public abstract class CustomEntityType<T extends Entity> {
      * @param type The {@link CustomEntityType} to register.
      * @return The {@link CustomEntityType} that was overridden, if it exists, due to duplicate ID's.
      */
+    @Nullable
     public static CustomEntityType<?> register(CustomEntityType<?> type) {
         if (plugin == null) {
             initialize();
@@ -229,6 +334,13 @@ public abstract class CustomEntityType<T extends Entity> {
         return REGISTRY.put(type.getID(), type);
     }
 
+    /**
+     * Get the registered {@link CustomEntityType} for the given {@link String} ID.
+     *
+     * @param id The {@link String} ID of the {@link CustomEntityType} to get from the registry.
+     * @return The {@link CustomEntityType} for the given ID, or null if it doesn't exist.
+     */
+    @Nullable
     public static CustomEntityType<?> get(String id) {
         return REGISTRY.get(id);
     }
@@ -239,6 +351,7 @@ public abstract class CustomEntityType<T extends Entity> {
      * @param entity the {@link Entity} to get the {@link CustomEntityType} from;
      * @return The proper {@link CustomEntityType}, or null if it doesn't have one, or the ID is invalid.
      */
+    @Nullable
     public static CustomEntityType<?> get(Entity entity) {
         PersistentDataContainer data = entity.getPersistentDataContainer();
         if (!data.has(entityKey, PersistentDataType.STRING)) {
@@ -257,7 +370,7 @@ public abstract class CustomEntityType<T extends Entity> {
      * @param entity           The {@link Entity} to receive the {@link CustomEntityType}.
      * @param customEntityType The {@link CustomEntityType} to give the {@link Entity}.
      */
-    public static void set(Entity entity, CustomEntityType customEntityType) {
+    public static void set(Entity entity, CustomEntityType<?> customEntityType) {
         PersistentDataContainer data = entity.getPersistentDataContainer();
         data.set(entityKey, PersistentDataType.STRING, customEntityType.getID());
     }
@@ -268,6 +381,7 @@ public abstract class CustomEntityType<T extends Entity> {
      * @param clazz The {@link Class<Entity>} to find the {@link EntityType} for.
      * @return The appropriate {@link EntityType}, or null if not found.
      */
+    @Nullable
     private static EntityType getEntityType(Class<? extends Entity> clazz) {
         for (EntityType entityType : EntityType.values()) {
             if (entityType.getEntityClass() != clazz) {

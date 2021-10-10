@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * This listener is responsible for injecting our {@link PacketInterceptor} into the
@@ -15,6 +16,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
  */
 public final class PlayerPacketListener implements Listener {
 
+    private final JavaPlugin plugin;
+
+    public PlayerPacketListener(JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -33,7 +39,7 @@ public final class PlayerPacketListener implements Listener {
         }
 
         //All clear, add the interceptor before the packet_handler context.
-        pipeline.addBefore("packet_handler", "custom_entity", new PacketInterceptor(player));
+        pipeline.addBefore("packet_handler", "custom_entity", new PacketInterceptor(plugin, player));
     }
 
 }

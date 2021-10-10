@@ -9,14 +9,20 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CustomEntityTestPlugin extends JavaPlugin {
 
-    public static final ShopkeeperEntityType FOOD_SHOPKEEPER = new ShopkeeperEntityType("food", "Buy my food!");
-    public static final ShopkeeperEntityType REDSTONE_SHOPKEEPER = new ShopkeeperEntityType("redstone", "I sell redstone.");
+    public static ShopkeeperEntityType foodShopkeeper;
+    public static ShopkeeperEntityType redstoneShopkeeper;
+    public static final FlyingFishEntityType FLYING_FISH = new FlyingFishEntityType("flying-fish");
 
     @Override
     public void onEnable() {
+        // These have to be instantiated like this because they need the plugin instance.
+        foodShopkeeper = new ShopkeeperEntityType(this, "food", "Buy my food!");
+        redstoneShopkeeper = new ShopkeeperEntityType(this, "redstone", "I sell redstone.");
+
         getLogger().info("Registering our test custom entities...");
-        CustomEntityType.register(FOOD_SHOPKEEPER);
-        CustomEntityType.register(REDSTONE_SHOPKEEPER);
+        CustomEntityType.register(foodShopkeeper);
+        CustomEntityType.register(redstoneShopkeeper);
+        CustomEntityType.register(FLYING_FISH);
     }
 
     @Override
@@ -31,7 +37,7 @@ public final class CustomEntityTestPlugin extends JavaPlugin {
             return true;
         }
 
-        FOOD_SHOPKEEPER.spawn(player.getLocation());
+        foodShopkeeper.spawn(player.getLocation());
         return true;
     }
 }
