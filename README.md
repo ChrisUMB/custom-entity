@@ -1,7 +1,9 @@
 # Custom Entity
 
-## This project was made as a simple utility for spawning entities that look one way to the client, but are internally something else on the server.
-#
+### This project was made as a simple utility for spawning entities that look one way to the client, but are internally something else on the server.
+
+#### Example: This is actually a zombie, with zombie AI, but looks like a player. Neat!
+![Zombie -> Player Example](img/zombie-player-example.gif)
 
 ## Dependency
 ##### Note: You need to also have the server as a dependency for NMS access.
@@ -85,5 +87,7 @@ I don't plan on providing continued support on this project, I just made it for 
 The entities created are persistent across server restarts. Some use cases I think are good are dynamic shop NPC's that have some pathfinding on their base entity, but it's also fun to just make random mobs behave like others. Try a bat that looks like a horse, it's just funny.
 
 This heavily relies on packet interception, so it's pretty prone to cause issues. There very well may be some client side exceptions that don't kick the client, but it complains about, which I tried my best to remedy the ones I found. Furthermore, there is some asyncronous entity accessing which probably shouldn't happen, but I have no idea what else I would do.
+
+The skin format is just `value` `\n` `signature`. You can make a `.skin` file easily enough manually by going to https://sessionserver.mojang.com/session/minecraft/profile/%s?unsigned=false and replacing `%s` with the UUID you get from https://api.mojang.com/users/profiles/minecraft/%s where you replace `%s` with a username.
 
 If you want to fork this, you need to run the `setupTestServer` task, then refresh gradle so that you have the test server and the `.jar` files necessary.

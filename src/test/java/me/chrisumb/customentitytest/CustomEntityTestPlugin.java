@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+
 public final class CustomEntityTestPlugin extends JavaPlugin {
 
     public static ShopkeeperEntityType foodShopkeeper;
@@ -15,6 +17,10 @@ public final class CustomEntityTestPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        if (!new File(getDataFolder(), "tom1024.skin").exists()) {
+            getSLF4JLogger().error("Trying to load example, but tom1024.skin doesn't exist! Replace it with something else.");
+        }
+
         // These have to be instantiated like this because they need the plugin instance.
         foodShopkeeper = new ShopkeeperEntityType(this, "food", "Buy my food!");
         redstoneShopkeeper = new ShopkeeperEntityType(this, "redstone", "I sell redstone.");

@@ -2,6 +2,7 @@ package me.chrisumb.customentitytest;
 
 import me.chrisumb.customentity.CustomEntityType;
 import me.chrisumb.customentity.Skin;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -38,7 +39,7 @@ public final class ShopkeeperEntityType extends CustomEntityType<Zombie> {
         entity.setShouldBurnInDay(false);
 
         entity.setCustomNameVisible(true);
-        entity.setCustomName("Food Shopkeeper");
+        entity.setCustomName(ChatColor.translateAlternateColorCodes('&', "&c&lFood Shopkeeper"));
 
         EntityEquipment equipment = entity.getEquipment();
         equipment.setItem(EquipmentSlot.HAND, new ItemStack(Material.DIAMOND_SWORD));
