@@ -221,7 +221,7 @@ public abstract class CustomEntityType<T extends Entity> {
      * @param block  The {@link Block} that damaged the entity.
      * @param event  The {@link EntityDamageByBlockEvent event} instance.
      */
-    public void onDamageByBlock(@NotNull T entity, @NotNull Block block, @NotNull EntityDamageByBlockEvent event) {
+    public void onDamageByBlock(@NotNull T entity, @Nullable Block block, @NotNull EntityDamageByBlockEvent event) {
 
     }
 

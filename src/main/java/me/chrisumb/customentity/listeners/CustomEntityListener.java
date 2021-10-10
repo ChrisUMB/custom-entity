@@ -6,6 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -60,6 +61,19 @@ public class CustomEntityListener implements Listener {
         if (damagerCustomEntityType != null) {
             damagerCustomEntityType.onDamageToEntity(damager, entity, event);
         }
+    }
+
+    @EventHandler
+    public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
+        Entity entity = event.getEntity();
+
+        CustomEntityType<Entity> customEntityType = getCustomEntityType(entity);
+
+        if (customEntityType == null) {
+            return;
+        }
+
+        customEntityType.onDamageByBlock(entity, event.getDamager(), event);
     }
 
     @EventHandler

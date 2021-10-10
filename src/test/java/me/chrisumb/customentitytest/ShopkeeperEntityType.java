@@ -1,14 +1,10 @@
 package me.chrisumb.customentitytest;
 
-import com.destroystokyo.paper.entity.ai.MobGoals;
 import me.chrisumb.customentity.CustomEntityType;
 import me.chrisumb.customentity.Skin;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
@@ -46,11 +42,6 @@ public final class ShopkeeperEntityType extends CustomEntityType<Zombie> {
 
         EntityEquipment equipment = entity.getEquipment();
         equipment.setItem(EquipmentSlot.HAND, new ItemStack(Material.DIAMOND_SWORD));
-    }
-
-    @Override
-    public void onDamageByBlock(@NotNull Zombie entity, @NotNull Block block, @NotNull EntityDamageByBlockEvent event) {
-
     }
 
     public String getPhrase() {
