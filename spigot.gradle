@@ -3,78 +3,51 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
-
-class Constants {
-    static final def VERSION = "1.17.1"
-//    static final def SERVER_DOWNLOAD = "https://sparse.blue/downloads/spigot/spigot-${VERSION}.jar"
-    static final def SERVER_DOWNLOAD = "https://papermc.io/api/v2/projects/paper/versions/1.17.1/builds/311/downloads/paper-1.17.1-311.jar"
-    static final def GROUP_NAME = "server [${VERSION}]"
-    static final def RUN_FOLDER = new File("run-" + VERSION.toString())
-}
+final String SERVER_MEMORY = "4G"
+final String VERSION = "1.17.1"
+final String SERVER_DOWNLOAD = "https://papermc.io/api/v2/projects/paper/versions/1.17.1/builds/325/downloads/paper-1.17.1-325.jar"
+final String GROUP_NAME = "server [${VERSION}]"
+final File RUN_FOLDER = new File(project.rootDir, "run-${VERSION}")
 
 task copyToPlugins(type: Copy) {
-    group Constants.GROUP_NAME
+    group GROUP_NAME
     from testShadowJar
-    into new File(Constants.RUN_FOLDER, "plugins")
+    into new File(RUN_FOLDER, "plugins")
 }
 
-task setupTestServer {
-    group Constants.GROUP_NAME
+task setupTestServer(type: Exec) {
+    group GROUP_NAME
 
     doFirst {
-        def serverDir = Constants.RUN_FOLDER
-//        System.out.println(serverDir.getAbsolutePath())
-
-//        if (new File(serverDir, "server.jar").exists()) {
-//            System.out.println("It exists.")
-//            return
-//        }
-
+        def serverDir = RUN_FOLDER
         serverDir.mkdir()
 
         def settingsDir = new File(serverDir, "settings")
         settingsDir.mkdir()
 
-
         def eula = new File(settingsDir, "eula.txt")
-//        eula.write("eula=true")
-        def writer = new FileWriter(eula)
-        writer.write("eula=true")
-        writer.close()
+        try(def writer = new FileWriter(eula)) {
+            writer.write("eula=true")
+        }
 
         new File(serverDir, "plugins").mkdir()
         new File(serverDir, "worlds").mkdir()
-        createServerJar(serverDir)
+        createServerJar(SERVER_DOWNLOAD, serverDir)
     }
+
+    workingDir new File(RUN_FOLDER, "settings")
+    standardOutput = new ByteArrayOutputStream()
+    commandLine 'java', '-jar', '../server.jar', '--help'
 }
 
 
 task runTestServer(type: Exec, dependsOn: [copyToPlugins]) {
-    group Constants.GROUP_NAME
-    workingDir new File(Constants.RUN_FOLDER, "settings")
-//    commandLine 'java',
-//            '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005',
-//            '-Xmx4G',
-//            '-Xms4G',
-//            '-XX:+UseG1GC',
-//            '-XX:+UnlockExperimentalVMOptions',
-//            '-XX:MaxGCPauseMillis=100',
-//            '-XX:+DisableExplicitGC',
-//            '-XX:TargetSurvivorRatio=90',
-//            '-XX:G1NewSizePercent=40',
-//            '-XX:G1MaxNewSizePercent=60',
-//            '-XX:G1MixedGCLiveThresholdPercent=35',
-//            '-XX:+AlwaysPreTouch',
-//            '-XX:+ParallelRefProcEnabled',
-//            '-Dusing.aikars.flags=mcflags.emc.gs',
-//            '-jar', '../server.jar',
-//            '-P', '../plugins',
-//            '-W', '../worlds',
-//            '-nogui'
+    group GROUP_NAME
+    workingDir new File(RUN_FOLDER, "settings")
     commandLine 'java',
             '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005',
-            '-Xmx4G',
-            '-Xms4G',
+            "-Xmx${SERVER_MEMORY}",
+            "-Xms${SERVER_MEMORY}",
             '-XX:+UseG1GC',
             '-XX:+ParallelRefProcEnabled',
             '-XX:MaxGCPauseMillis=200',
@@ -96,8 +69,6 @@ task runTestServer(type: Exec, dependsOn: [copyToPlugins]) {
             '-XX:MaxTenuringThreshold=1',
             '-Dusing.aikars.flags=https://mcflags.emc.gs',
             '-Daikars.new.flags=true',
-//            '-Djava.util.concurrent.ForkJoinPool.common.parallelism=2',
-//            '-Djava.util.concurrent.ForkJoinPool.common.maximumSpares=4',
             '-jar', '../server.jar',
             '-P', '../plugins',
             '-W', '../worlds',
@@ -106,8 +77,8 @@ task runTestServer(type: Exec, dependsOn: [copyToPlugins]) {
 }
 
 
-static void createServerJar(File serverDir) {
-    def url = new URL(Constants.SERVER_DOWNLOAD.toString())
+static void createServerJar(String serverDownloadURL, File serverDir) {
+    def url = new URL(serverDownloadURL)
     def connection = url.openConnection() as HttpsURLConnection
     connection.requestMethod = "GET"
     connection.doInput = true
@@ -116,23 +87,12 @@ static void createServerJar(File serverDir) {
     def serverFile = new File(serverDir, 'server.jar')
     Files.copy(connection.inputStream,
             Paths.get(serverFile.absolutePath),
-            StandardCopyOption.REPLACE_EXISTING
+            StandardCopyOption.REPLACE_EXISTING,
     )
 
     connection.disconnect()
 }
 
-//javadoc {
-//    options {
-//        links 'https://papermc.io/javadocs/paper/1.16'
-//    }
-//}
-
 dependencies {
-//    compileOnly fileTree("run-${Constants.VERSION}/plugins")
-//            .exclude(shadowJar.archiveFileName.get())
-    implementation fileTree("run-${Constants.VERSION}/settings/cache/patched_1.17.1.jar")
-//    testCompile fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.16.4.jar")
-//    compileOnly fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.15.2.jar")
-//    runtimeOnly fileTree("../run-${Constants.VERSION}/settings/cache/patched_1.15.2.jar")
+    implementation fileTree("run-${VERSION}/settings/cache/patched_${VERSION}.jar")
 }

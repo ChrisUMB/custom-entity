@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id 'java'
     id "com.github.johnrengelman.shadow" version "7.1.0"
+    id 'maven-publish'
 }
 
 group 'me.chrisumb'
@@ -13,9 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:+'
-//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation 'org.jetbrains:annotations:22.0.0'
 }
 
 tasks.withType(ShadowJar) {
