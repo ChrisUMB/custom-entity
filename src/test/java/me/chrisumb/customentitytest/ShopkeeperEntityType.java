@@ -29,7 +29,7 @@ public final class ShopkeeperEntityType extends CustomEntityType<Zombie> {
         if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
-
+        
         player.sendMessage(phrase);
     }
 

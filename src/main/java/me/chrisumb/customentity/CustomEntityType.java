@@ -245,6 +245,15 @@ public abstract class CustomEntityType<T extends Entity> {
     }
 
     /**
+     * This will be called whenever this {@link CustomEntityType} is spawned.
+     *
+     * @param entity - The {@link Entity} that was spawned.
+     */
+    public void onPreSpawn(@NotNull T entity) {
+
+    }
+
+    /**
      * Spawns the {@link CustomEntityType} at the given {@link Location}, and allowing for pre-spawn {@link Consumer<T>} to be passed.
      *
      * @param location         The {@link Location} to spawn the {@link T entity} at.
@@ -257,6 +266,7 @@ public abstract class CustomEntityType<T extends Entity> {
         T entity = world.spawn(location, this.internalEntityClass, CreatureSpawnEvent.SpawnReason.CUSTOM, (preEntity) -> {
             CustomEntityType.set(preEntity, this);
             preSpawnFunction.accept(preEntity);
+            onPreSpawn(preEntity);
         });
         this.onSpawn(entity);
         return entity;
